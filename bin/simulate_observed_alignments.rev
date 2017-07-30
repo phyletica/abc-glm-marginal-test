@@ -33,3 +33,5 @@ for (i in 1:n_observed_sims) {
 
     writeFasta(observed_aln_path_prefix + i + ".fasta", seq_ctmc)
 }
+
+q()
