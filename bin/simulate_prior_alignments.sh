@@ -42,6 +42,7 @@ do
             output_dir="$1"
             ;;
         -s| --seed)
+            shift
             rng_seed="$1"
             ;;
         * )
