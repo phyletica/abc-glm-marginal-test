@@ -1,0 +1,13 @@
+#NEXUS
+
+Begin taxa;
+	Dimensions ntax=2;
+	Taxlabels
+		sp1
+		sp2
+		;
+End;
+
+Begin trees;
+tree TREE1 = [&R](sp1[&index=1]:0.02,sp2[&index=2]:0.02)[&index=3,posterior=1.000000,ccp=1.000000]:0.000000;
+End;

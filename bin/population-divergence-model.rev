@@ -1,0 +1,32 @@
+tree = readTrees("template.tree")[1]
+population_labels = tree.taxa()
+
+root_height_shape <- 5.0
+mean_root_height <- 0.05
+root_height_rate := root_height_shape / mean_root_height
+root_height ~ dnGamma(shape = root_height_shape, rate = root_height_rate)
+
+psi ~ dnUniformTimeTree(rootAge = root_height, taxa = population_labels)
+
+pop_size_shape <- 5.0
+mean_pop_size <- 0.005
+pop_size_rate := pop_size_shape / mean_pop_size
+population_size ~ dnGamma(shape = pop_size_shape, rate = pop_size_rate)
+
+taxon_map = readTaxonData("template-species-map.txt")
+
+gene_tree ~ dnMultiSpeciesCoalescent(speciesTree = psi,
+        Ne = population_size,
+        taxa = taxon_map)
+
+clock_rate = 1.0
+
+q = fnJC(num_states = 4)
+
+seq_ctmc ~ dnPhyloCTMC(tree = gene_tree,
+        Q = q,
+        branchRates = clock_rate,
+        nSites = 1000,
+        type = "DNA")
+
+mymodel = model(psi)

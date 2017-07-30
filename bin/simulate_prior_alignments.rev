@@ -1,0 +1,38 @@
+if (!exists("rng_seed")) "ERROR: `rng_seed` undefined"
+if (!exists("output_dir")) "ERROR: `output_dir` undefined"
+if (!exists("number_of_sims")) "ERROR: `number_of_sims` undefined"
+
+seed(rng_seed)
+
+source("population-divergence-model.rev")
+
+header = "root_height\tpop_size\n"
+
+prior_parameters_path = output_dir + "/parameter-values.txt"
+write(header,
+        filename = prior_parameters_path,
+        append = FALSE,
+        separator = "\t")
+
+prior_aln_path_prefix = output_dir + "/prior-sample-alignment-"
+
+for (i in 1:number_of_sims) {
+    # Draw values of parameters from respective priors
+    population_size.redraw()
+    root_height.redraw()
+    gene_tree.redraw()
+
+    seq_ctmc.redraw()
+
+    write(root_height, population_size,
+            filename = prior_parameters_path,
+            append = TRUE,
+            separator = "\t")
+    write("\n",
+            filename = prior_parameters_path,
+            append = TRUE)
+
+    writeFasta(prior_aln_path_prefix + i + ".fasta", seq_ctmc)
+}
+
+q()

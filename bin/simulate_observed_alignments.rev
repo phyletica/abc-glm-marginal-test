@@ -1,0 +1,35 @@
+rng_seed = 19837987
+seed(rng_seed)
+
+source("population-divergence-model.rev")
+
+mymodel.graph(file = "population-tree-model.dot", verbose = TRUE)
+
+header = "root_height\tpop_size\n"
+observed_parameters_path = "../sim-observed-alignments/parameter-values.txt"
+write(header,
+        filename = observed_parameters_path,
+        append = FALSE,
+        separator = "\t")
+
+observed_aln_path_prefix = "../sim-observed-alignments/sim-observed-alignment-"
+
+n_observed_sims = 10
+for (i in 1:n_observed_sims) {
+    # Draw values of parameters from respective priors
+    population_size.redraw()
+    root_height.redraw()
+    gene_tree.redraw()
+
+    seq_ctmc.redraw()
+
+    write(root_height, population_size,
+            filename = observed_parameters_path,
+            append = TRUE,
+            separator = "\t")
+    write("\n",
+            filename = observed_parameters_path,
+            append = TRUE)
+
+    writeFasta(observed_aln_path_prefix + i + ".fasta", seq_ctmc)
+}
