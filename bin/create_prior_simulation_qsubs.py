@@ -6,7 +6,7 @@ import random
 
 import project_util
 
-def get_pbs_header(restrict_nodes = False, walltime = "1:00:00"):
+def get_pbs_header(restrict_nodes = False, walltime = "0:10:00"):
     s = ("#! /bin/sh\n"
          "#PBS -l nodes=1:ppn=1\n"
          "#PBS -l walltime={0}\n"
@@ -28,25 +28,19 @@ def main():
     rng.seed(951640981)
     number_of_batches = 100
     batch_size = 1000
-    batch_script_path = os.path.join(project_util.BIN_DIR,
-            "simulate_prior_alignments.sh")
-    qsub_dir = os.path.join(project_util.BIN_DIR,
-            "simulate_prior_alignments_batches")
-    rel_batch_script_path = os.path.relpath(batch_script_path, qsub_dir)
-    if not os.path.exists(qsub_dir):
-        os.mkdir(qsub_dir)
+    batch_script_path = "./simulate_prior_alignments.sh"
     for i in range(number_of_batches):
-        qsub_script_path = os.path.join(qsub_dir,
-                "simulate_prior_batch_{0}.sh".format(i +  1))
+        qsub_script_path = os.path.join(project_util.BIN_DIR,
+                "simulate_prior_alignments_batch_{0}.sh".format(i +  1))
         stdout_path = os.path.basename(qsub_script_path) + ".out"
         output_dir = os.path.join(project_util.PRIOR_DIR,
                 "batch-{0}".format(i + 1))
-        rel_output_dir = os.path.relpath(output_dir, qsub_dir)
+        rel_output_dir = os.path.relpath(output_dir, project_util.BIN_DIR)
         cmd_line = "{p} -n {n} -o {o} -s {s} 1>{stdout} 2>&1\n".format(
-                p = rel_batch_script_path,
+                p = batch_script_path,
                 n = batch_size,
                 o = rel_output_dir,
-                s = rng.randint(1, 999999999999),
+                s = rng.randint(1, 999999999),
                 stdout = stdout_path)
         with open(qsub_script_path, "w") as out:
             out.write("{0}{1}".format(pbs_header, cmd_line))
