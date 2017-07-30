@@ -14,7 +14,7 @@ write(header,
 
 observed_aln_path_prefix = "../sim-observed-alignments/sim-observed-alignment-"
 
-n_observed_sims = 10
+n_observed_sims = 100
 for (i in 1:n_observed_sims) {
     # Draw values of parameters from respective priors
     population_size.redraw()
