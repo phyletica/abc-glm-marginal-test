@@ -37,7 +37,7 @@ def calc_sum_stats(fasta_path, pop1_prefix = "sp1", pop2_prefix = "sp2"):
             per_site = True,
             aligned = True)
 
-def calc_sum_stats_for_observed_alignments(number_of_alignments = 10):
+def calc_sum_stats_for_observed_alignments(number_of_alignments = 100):
     for i in range(number_of_alignments):
         observed_path = os.path.join(project_util.OBSERVED_DIR,
                 "sim-observed-alignment-{0}.fasta".format(i + 1))
@@ -75,7 +75,7 @@ def main_cli(argv = sys.argv):
             "seqsift-version-info.txt")
     with open(seqsift_info_path, "w") as out:
         out.write("{0}\n".format(seqsift.get_description()))
-    calc_sum_stats_for_observed_alignments(10)
+    calc_sum_stats_for_observed_alignments(100)
     calc_sum_stats_for_prior_alignments()
 
 
