@@ -1,0 +1,32 @@
+
+  ABCestimator  
+***********
+
+Filenames:
+----------
+- Reading inputfile 'sim-observed-alignment-38-abctoolbox.cfg' ... done!
+- Performing a standard estimation.
+- Reading observed data file 'sim-observed-alignment-38-sum-stats.txt' ... done!
+   -> 1 data sets with 2 statistics each.
+- Reading simulation file 'sim-observed-alignment-38-posterior-sample.txt' ... done!
+   -> 1000 simulations with 2 parameters and 2 statistics each.
+sim-observed-alignment-38-abc-glm-marginalDensity.txt
+
+ABC-GLM Estimations:
+------------
+Standardizing parameters ...done!
+Standardizing statistics ... done!
+performing estimations for observed data set 0:
+   - calculating distances ... done!
+   - use all 1000 simulations for the estimation (no rejection)... done!
+   - approximation of the prior with Dirac peaks ... done!
+   - using smoothed empirical distribution of parameters as truncated prior ...done!
+   - performing local linear regression ... done!
+   - calculating posterior densities for 2 parameters ... done!
+   - marginal density: 0.0943317
+   - calculate common surface of prior and posterior ...done!
+   - write file with posterior estimates ... done!
+   - write file with posterior characteristics ... done!
+   - finished estimations for data set 0!
+
+End of Program!!
