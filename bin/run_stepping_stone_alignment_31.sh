@@ -12,10 +12,10 @@ then
 fi
 
 aln_num=31
-out_path="run_stepping_stone_alignment_${aln_num}.out"
 
 for run_num in 1 2 3
 do
+    out_path="run_stepping_stone_alignment_${aln_num}_run_${run_num}.out"
     rng_seed=$RANDOM
     ./run_stepping_stone.sh -a $aln_num -r $run_num -s $rng_seed 1>"$out_path" 2>&1
 done
