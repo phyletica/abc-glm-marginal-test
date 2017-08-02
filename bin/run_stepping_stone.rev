@@ -1,0 +1,45 @@
+if (!exists("rng_seed")) "ERROR: `rng_seed` undefined"
+if (!exists("aln_num")) "ERROR: `aln_num` undefined"
+if (!exists("run_num")) "ERROR: `run_num` undefined"
+
+seed(rng_seed)
+
+source("population-divergence-model.rev")
+
+source("population-divergence-moves.rev")
+
+data <- readDiscreteCharacterData("../sim-observed-alignments/sim-observed-alignment-" + aln_num + ".fasta")
+seq_ctmc.clamp(data)
+
+mymodel = model(psi)
+
+monitors[1] = mnModel(
+        filename = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-mcmc-run-" + run_num + ".log",
+        printgen=10,
+        separator = TAB)
+
+power_posterior = powerPosterior(
+        model = mymodel,
+        moves = moves,
+        monitors = monitors,
+        filename = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-pp-run-" + run_num + ".log",
+        cats = 100,
+        alpha = 0.2,
+        sampleFreq = 50)
+power_posterior.burnin(generations = 1000, tuningInterval = 100)
+power_posterior.run(generations = 5000)
+
+ss = steppingStoneSampler(file = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-pp-run-" + run_num + ".log",
+        powerColumnName = "power",
+        likelihoodColumnName = "likelihood")
+
+ml = ss.marginal()
+
+ml_path = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-ml-run-" + run_num + ".txt"
+
+write(ml,
+        filename = ml_path,
+        append = FALSE,
+        separator = "\t")
+
+q()
