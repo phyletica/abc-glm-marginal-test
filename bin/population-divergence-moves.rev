@@ -1,0 +1,11 @@
+move_idx = 0
+moves[++move_idx] = mvScale(root_height, lambda = 1, tune = true, weight = 2)
+moves[++move_idx] = mvSlide(root_height, delta = 1, tune = true, weight = 2)
+moves[++move_idx] = mvScale(population_size, lambda = 1, tune = true, weight = 1)
+moves[++move_idx] = mvNNI(gene_tree, weight = 2.0)
+moves[++move_idx] = mvNarrow(gene_tree, weight = 2.0)
+moves[++move_idx] = mvFNPR(gene_tree, weight = 2.0)
+moves[++move_idx] = mvGPR(gene_tree, weight = 2.0)
+moves[++move_idx] = mvSubtreeScale(gene_tree, weight = 2.0)
+moves[++move_idx] = mvTreeScale(gene_tree, delta = 1.0, tune = true, weight = 3.0)
+moves[++move_idx] = mvNodeTimeSlideUniform(gene_tree, weight = 10.0)
