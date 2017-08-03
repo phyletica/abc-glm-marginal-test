@@ -7,6 +7,7 @@ BIN_DIR = os.path.abspath(os.path.dirname(__file__))
 PROJECT_DIR = os.path.dirname(BIN_DIR)
 OBSERVED_DIR = os.path.join(PROJECT_DIR, 'sim-observed-alignments')
 PRIOR_DIR = os.path.join(PROJECT_DIR, 'abc-prior')
+RESULTS_DIR = os.path.join(PROJECT_DIR, 'results')
 
 def main():
     sys.stdout.write("{0}\n".format(PROJECT_DIR))
