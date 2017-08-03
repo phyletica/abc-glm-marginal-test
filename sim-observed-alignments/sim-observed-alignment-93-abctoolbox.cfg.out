@@ -23,7 +23,7 @@ performing estimations for observed data set 0:
    - using smoothed empirical distribution of parameters as truncated prior ...done!
    - performing local linear regression ... done!
    - calculating posterior densities for 2 parameters ... done!
-   - marginal density: 0.157868
+   - marginal density: 0.154257
    - calculate common surface of prior and posterior ...done!
    - write file with posterior estimates ... done!
    - write file with posterior characteristics ... done!

@@ -1,4 +1,4 @@
-rng_seed = 19837987
+rng_seed = 368174625
 seed(rng_seed)
 
 source("population-divergence-model.rev")
