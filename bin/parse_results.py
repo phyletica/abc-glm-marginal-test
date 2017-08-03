@@ -90,10 +90,6 @@ def parse_results():
                         "sim-observed-alignment-{0}-abc-glm-PosteriorCharacteristics_Obs0.txt".format(i+1))
                 ss_ml_paths = glob.glob(os.path.join(project_util.OBSERVED_DIR,
                         "sim-observed-alignment-{0}-rb-ml-run-*.txt").format(i+1))
-                if not len(ss_ml_paths) == 3:
-                    sys.stderr.write("found {0} rb ml paths for sim {1}\n".format(
-                            len(ss_ml_paths), i + 1))
-                    continue
                 assert len(ss_ml_paths) == 3, "found {0} rb ml paths for sim {1}".format(
                         len(ss_ml_paths), i + 1)
 
