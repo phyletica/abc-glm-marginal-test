@@ -50,9 +50,6 @@ def parse_abctoolbox_stdout(path):
         assert len(glm_ml_matches) == 1
     return float(glm_ml_matches[0])
 
-def parse_glm_estimates(
-        path = glm_parameter_estimates_path):
-
 def get_max_abs_diff(values):
     mx = float("-inf")
     for i in range(len(values) - 1):
