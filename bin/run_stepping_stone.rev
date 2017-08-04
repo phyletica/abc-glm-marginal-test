@@ -13,23 +13,35 @@ seq_ctmc.clamp(data)
 
 mymodel = model(psi)
 
-monitors[1] = mnModel(
+mcmc_monitors[1] = mnModel(
         filename = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-mcmc-run-" + run_num + ".log",
-        printgen=10,
+        printgen = 20,
+        separator = TAB)
+
+mymcmc = mcmc(
+        model = mymodel,
+        monitors = mcmc_monitors,
+        moves = moves)
+mymcmc.burnin(generations = 1000, tuningInterval = 100)
+mymcmc.run(generations = 20000)
+
+pp_monitors[1] = mnModel(
+        filename = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-pp-run-" + run_num + ".log",
+        printgen = 50,
         separator = TAB)
 
 power_posterior = powerPosterior(
         model = mymodel,
         moves = moves,
-        monitors = monitors,
-        filename = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-pp-run-" + run_num + ".log",
+        monitors = pp_monitors,
+        filename = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-pp-likelihoods-run-" + run_num + ".log",
         cats = 100,
         alpha = 0.2,
         sampleFreq = 50)
 power_posterior.burnin(generations = 1000, tuningInterval = 100)
-power_posterior.run(generations = 5000)
+power_posterior.run(generations = 20000)
 
-ss = steppingStoneSampler(file = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-pp-run-" + run_num + ".log",
+ss = steppingStoneSampler(file = "../sim-observed-alignments/sim-observed-alignment-" + aln_num + "-rb-pp-likelihoods-run-" + run_num + ".log",
         powerColumnName = "power",
         likelihoodColumnName = "likelihood")
 
