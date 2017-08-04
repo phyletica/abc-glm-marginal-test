@@ -64,5 +64,3 @@ args="rng_seed = ${rng_seed};
       source(\"run_stepping_stone.rev\");"
 
 echo $args | rb
-
-rm "../sim-observed-alignments/sim-observed-alignment-${aln_num}-rb-pp-run-${run_num}_stone_*.log"
