@@ -1,6 +1,6 @@
 #! /bin/sh
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=10:00:00
+#PBS -l walltime=3:00:00
 #PBS -j oe
 #PBS -l jobflags=ADVRES:jro0014_lab.56281
 
@@ -12,8 +12,6 @@ then
 fi
 
 aln_num=61
-seed=277274804
-RANDOM=$seed
 
 for run_num in 1 2 3
 do
