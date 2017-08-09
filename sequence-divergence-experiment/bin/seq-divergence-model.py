@@ -423,7 +423,8 @@ class EdgeModel(object):
             ln_slice_area = math.log(step_size) + ln_density 
             ln_areas.append(ln_slice_area)
             position += step_size
-        assert len(ln_areas) == number_of_steps, (
+        assert ((len(ln_areas) == number_of_steps) or
+                (len(ln_areas) == number_of_steps + 1)), (
                 "unexpected number of steps {0}".format(len(ln_areas)))
         mean_ln_area = sum(ln_areas) / len(ln_areas)
         mean_ln_density = total_ln_density / len(ln_areas)
@@ -456,7 +457,8 @@ class EdgeModel(object):
             scaled_ml += scaled_mean_density * step_size
             n += 1
             position += step_size
-        assert n == number_of_steps, (
+        assert ((n == number_of_steps) or
+                (n == number_of_steps + 1)), (
                 "unexpected number of steps {0}".format(n))
         # Shift the log marginal likelihood back
         ln_ml = math.log(scaled_ml) + mean_ln_posterior_density
@@ -709,9 +711,9 @@ def main_cli(argv = sys.argv):
         trap_ml = m.trapezoidal_integration_of_posterior(
                 number_of_steps = number_of_steps,
                 mean_ln_posterior_density = mean_density)
-        rect_path = args.output_path + "-rectangular-ml-estimate-{0}.txt".format(
+        rect_path = args.output_prefix + "-rectangular-ml-estimate-{0}.txt".format(
                 number_of_steps)
-        trap_path = args.output_path + "-trapezoidal-ml-estimate-{0}.txt".format(
+        trap_path = args.output_prefix + "-trapezoidal-ml-estimate-{0}.txt".format(
                 number_of_steps)
         with open(rect_path, "w") as out:
             out.write("{0}\n".format(rect_ml))
