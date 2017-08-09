@@ -11,7 +11,6 @@ import re
 import logging
 import unittest
 import subprocess
-import multiprocessing
 
 import dendropy
 
