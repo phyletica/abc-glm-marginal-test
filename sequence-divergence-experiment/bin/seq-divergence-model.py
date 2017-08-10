@@ -660,6 +660,16 @@ def main_cli(argv = sys.argv):
             type = arg_is_positive_float,
             default = 0.1,
             help = ('Upper limit on uniform edge length prior.'))
+    parser.add_argument('--vague-prior-lower',
+            action = 'store',
+            type = arg_is_positive_float,
+            default = 0.0,
+            help = ('Lower limit on vague uniform edge length prior.'))
+    parser.add_argument('--vague-prior-upper',
+            action = 'store',
+            type = arg_is_positive_float,
+            default = 0.15,
+            help = ('Upper limit on vague uniform edge length prior.'))
     parser.add_argument('--output-prefix',
             action = 'store',
             type = str,
@@ -692,84 +702,92 @@ def main_cli(argv = sys.argv):
 
     start_time = datetime.datetime.now()
 
-    # ml_estimates = []
-    # for i in range(args.mc_reps):
-    #     _LOG.info("MC replicate {0} of {1}".format(i + 1,
-    #             args.mc_reps))
-    #     ml = m.get_monte_carlo_marginal_likelihood_approximation(
-    #             args.mc_samples)
-    #     ml_estimates.append(ml)
-    # ml_estimates.sort()
-    # ml_path = args.output_prefix + "-mc-ml-estimates.txt"
-    # with open(ml_path, "w") as out:
-    #     for e in ml_estimates:
-    #         out.write("{0}\n".format(e))
-    for number_of_steps in [100, 1000, 10000]:
-        rect_ml, mean_density = m.rectangular_integration_of_posterior(
-                number_of_steps = number_of_steps)
-        trap_ml = m.trapezoidal_integration_of_posterior(
-                number_of_steps = number_of_steps,
-                mean_ln_posterior_density = mean_density)
-        rect_path = args.output_prefix + "-rectangular-ml-estimate-{0}.txt".format(
-                number_of_steps)
-        trap_path = args.output_prefix + "-trapezoidal-ml-estimate-{0}.txt".format(
-                number_of_steps)
-        with open(rect_path, "w") as out:
-            out.write("{0}\n".format(rect_ml))
-        with open(trap_path, "w") as out:
-            out.write("{0}\n".format(trap_ml))
+    for i in range(2):
+        # First pass, inference under true model
+        # Second pass, inference under model with vague prior
+        if i == 1:
+            m.prior_lower = args.vague_prior_lower
+            m.prior_upper = args.vague_prior_upper
+            m.output_prefix += "-vague-model"
 
-    abc_sample = m.abc_rejection(
-            number_of_prior_samples = args.abc_prior_samples,
-            number_of_posterior_samples = args.abc_posterior_samples)
-    abc_path = args.output_prefix + "-abc-posterior-sample.txt"
-    with open(abc_path, "w") as out:
-        out.write("distance\tedge_length\tproportion_of_variable_sites\n")
-        for d, e, p in abc_sample:
-            out.write("{d}\t{e}\t{p}\n".format(d = d, e = e, p = p))
+        # ml_estimates = []
+        # for i in range(args.mc_reps):
+        #     _LOG.info("MC replicate {0} of {1}".format(i + 1,
+        #             args.mc_reps))
+        #     ml = m.get_monte_carlo_marginal_likelihood_approximation(
+        #             args.mc_samples)
+        #     ml_estimates.append(ml)
+        # ml_estimates.sort()
+        # ml_path = args.output_prefix + "-mc-ml-estimates.txt"
+        # with open(ml_path, "w") as out:
+        #     for e in ml_estimates:
+        #         out.write("{0}\n".format(e))
+        for number_of_steps in [100, 1000, 10000]:
+            rect_ml, mean_density = m.rectangular_integration_of_posterior(
+                    number_of_steps = number_of_steps)
+            trap_ml = m.trapezoidal_integration_of_posterior(
+                    number_of_steps = number_of_steps,
+                    mean_ln_posterior_density = mean_density)
+            rect_path = args.output_prefix + "-rectangular-ml-estimate-{0}.txt".format(
+                    number_of_steps)
+            trap_path = args.output_prefix + "-trapezoidal-ml-estimate-{0}.txt".format(
+                    number_of_steps)
+            with open(rect_path, "w") as out:
+                out.write("{0}\n".format(rect_ml))
+            with open(trap_path, "w") as out:
+                out.write("{0}\n".format(trap_ml))
 
-    glm_worker = ABCestimatorRegressWorker(
-            observed_path = observed_stat_path,
-            posterior_path = abc_path,
-            exe_path = "ABCestimator",
-            output_prefix = args.output_prefix + "-abctoolbox-glm",
-            parameter_indices = [1],
-            num_posterior_samples = args.abc_posterior_samples,
-            bandwidth = 2.0 / args.abc_posterior_samples,
-            num_posterior_quantiles = args.abc_posterior_samples / 2)
-    glm_worker.start()
+        abc_sample = m.abc_rejection(
+                number_of_prior_samples = args.abc_prior_samples,
+                number_of_posterior_samples = args.abc_posterior_samples)
+        abc_path = args.output_prefix + "-abc-posterior-sample.txt"
+        with open(abc_path, "w") as out:
+            out.write("distance\tedge_length\tproportion_of_variable_sites\n")
+            for d, e, p in abc_sample:
+                out.write("{d}\t{e}\t{p}\n".format(d = d, e = e, p = p))
 
-    glm_ml_path = args.output_prefix + "-abctoolbox-glm-ml-estimate.txt"
-    with open(glm_ml_path, "w") as out:
-        out.write("{0}\n".format(glm_worker.marginal_likelihood))
-    glm_edge_path = args.output_prefix + "-abctoolbox-glm-edge-mode.txt"
-    with open(glm_edge_path, "w") as out:
-        out.write("{0}\n".format(glm_worker.mode_edge_length))
+        glm_worker = ABCestimatorRegressWorker(
+                observed_path = observed_stat_path,
+                posterior_path = abc_path,
+                exe_path = "ABCestimator",
+                output_prefix = args.output_prefix + "-abctoolbox-glm",
+                parameter_indices = [1],
+                num_posterior_samples = args.abc_posterior_samples,
+                bandwidth = 2.0 / args.abc_posterior_samples,
+                num_posterior_quantiles = args.abc_posterior_samples / 2)
+        glm_worker.start()
 
-    mcmc_sample = m.mcmc(
-            number_of_generations = args.mcmc_generations,
-            sample_frequency = args.mcmc_sample_frequency)
-    mcmc_path = args.output_prefix + "-mcmc-sample.txt"
-    with open(mcmc_path, "w") as out:
-        out.write("generation\tln_likelihood\tedge_length\n")
-        for g, l, e in mcmc_sample:
-            out.write("{g}\t{l}\t{e}\n".format(g = g, l = l, e = e))
-    mcmc_edge_samples = [e for g, l, e in mcmc_sample[1:]]
-    mcmc_mean_edge = sum(mcmc_edge_samples) / len(mcmc_edge_samples)
-    mcmc_edge_path = args.output_prefix + "-mcmc-edge-mean.txt"
-    with open(mcmc_edge_path, "w") as out:
-        out.write("{0}\n".format(mcmc_mean_edge))
+        glm_ml_path = args.output_prefix + "-abctoolbox-glm-ml-estimate.txt"
+        with open(glm_ml_path, "w") as out:
+            out.write("{0}\n".format(glm_worker.marginal_likelihood))
+        glm_edge_path = args.output_prefix + "-abctoolbox-glm-edge-mode.txt"
+        with open(glm_edge_path, "w") as out:
+            out.write("{0}\n".format(glm_worker.mode_edge_length))
 
-    m.power = 0.0
+        mcmc_sample = m.mcmc(
+                number_of_generations = args.mcmc_generations,
+                sample_frequency = args.mcmc_sample_frequency)
+        mcmc_path = args.output_prefix + "-mcmc-sample.txt"
+        with open(mcmc_path, "w") as out:
+            out.write("generation\tln_likelihood\tedge_length\n")
+            for g, l, e in mcmc_sample:
+                out.write("{g}\t{l}\t{e}\n".format(g = g, l = l, e = e))
+        mcmc_edge_samples = [e for g, l, e in mcmc_sample[1:]]
+        mcmc_mean_edge = sum(mcmc_edge_samples) / len(mcmc_edge_samples)
+        mcmc_edge_path = args.output_prefix + "-mcmc-edge-mean.txt"
+        with open(mcmc_edge_path, "w") as out:
+            out.write("{0}\n".format(mcmc_mean_edge))
 
-    mcmc_sample = m.mcmc(
-            number_of_generations = args.mcmc_generations,
-            sample_frequency = args.mcmc_sample_frequency)
-    mcmc_path = args.output_prefix + "-mcmc-prior-sample.txt"
-    with open(mcmc_path, "w") as out:
-        out.write("generation\tln_likelihood\tedge_length\n")
-        for g, l, e in mcmc_sample:
-            out.write("{g}\t{l}\t{e}\n".format(g = g, l = l, e = e))
+        m.power = 0.0
+
+        mcmc_sample = m.mcmc(
+                number_of_generations = args.mcmc_generations,
+                sample_frequency = args.mcmc_sample_frequency)
+        mcmc_path = args.output_prefix + "-mcmc-prior-sample.txt"
+        with open(mcmc_path, "w") as out:
+            out.write("generation\tln_likelihood\tedge_length\n")
+            for g, l, e in mcmc_sample:
+                out.write("{g}\t{l}\t{e}\n".format(g = g, l = l, e = e))
 
     stop_time = datetime.datetime.now()
     run_time = stop_time - start_time
