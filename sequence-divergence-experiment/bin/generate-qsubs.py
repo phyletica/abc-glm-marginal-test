@@ -35,6 +35,8 @@ def main():
     mcmc_sample_frequency = 10
     prior_lower = 1.0 / seq_length
     prior_upper = 0.1
+    vague_prior_lower = 0.0
+    vague_prior_upper = 0.15
 
     if not os.path.exists(project_util.QSUB_DIR):
         os.mkdir(project_util.QSUB_DIR)
@@ -69,6 +71,8 @@ def main():
                    "--mcmc-sample-frequency {mcmc_sample_frequency} "
                    "--prior-lower {prior_lower} "
                    "--prior-upper {prior_upper} "
+                   "--vague-prior-lower {vague_prior_lower} "
+                   "--vague-prior-upper {vague_prior_upper} "
                    "--output-prefix {output_prefix} "
                    "{seed} 1>{stdout_path} 2>&1\n".format(
                             relative_script_path = relative_script_path,
@@ -79,6 +83,8 @@ def main():
                             mcmc_sample_frequency = mcmc_sample_frequency,
                             prior_lower = prior_lower,
                             prior_upper = prior_upper,
+                            vague_prior_lower = vague_prior_lower,
+                            vague_prior_upper = vague_prior_upper,
                             output_prefix = output_prefix,
                             seed = seed,
                             stdout_path = stdout_path))
