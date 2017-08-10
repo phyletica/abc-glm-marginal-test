@@ -1,0 +1,2 @@
+proportion_of_variable_sites
+0.0436
