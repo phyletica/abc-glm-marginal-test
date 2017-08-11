@@ -511,6 +511,16 @@ def arg_is_positive_float(i):
         raise argparse.ArgumentTypeError(msg)
     return float(i)
 
+def arg_is_nonnegative_float(i):
+    try:
+        if float(i) < 0:
+            raise
+    except:
+        msg = '{0!r} is not a non-negative real number'.format(i)
+        raise argparse.ArgumentTypeError(msg)
+    return int(i)
+
+
 
 class ABCestimatorRegressWorker(object):
     def __init__(self,
@@ -652,22 +662,22 @@ def main_cli(argv = sys.argv):
             help = ('Frequency with which to sample MCMC chain.'))
     parser.add_argument('--prior-lower',
             action = 'store',
-            type = arg_is_positive_float,
+            type = arg_is_nonnegative_float,
             default = 0.000001,
             help = ('Lower limit on uniform edge length prior.'))
     parser.add_argument('--prior-upper',
             action = 'store',
-            type = arg_is_positive_float,
+            type = arg_is_nonnegative_float,
             default = 0.1,
             help = ('Upper limit on uniform edge length prior.'))
     parser.add_argument('--vague-prior-lower',
             action = 'store',
-            type = arg_is_positive_float,
+            type = arg_is_nonnegative_float,
             default = 0.0,
             help = ('Lower limit on vague uniform edge length prior.'))
     parser.add_argument('--vague-prior-upper',
             action = 'store',
-            type = arg_is_positive_float,
+            type = arg_is_nonnegative_float,
             default = 0.15,
             help = ('Upper limit on vague uniform edge length prior.'))
     parser.add_argument('--output-prefix',
