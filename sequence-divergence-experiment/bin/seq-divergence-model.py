@@ -663,22 +663,22 @@ def main_cli(argv = sys.argv):
             help = ('Frequency with which to sample MCMC chain.'))
     parser.add_argument('--prior-lower',
             action = 'store',
-            type = arg_is_nonnegative_float,
+            type = arg_is_positive_float,
             default = 0.000001,
             help = ('Lower limit on uniform edge length prior.'))
     parser.add_argument('--prior-upper',
             action = 'store',
-            type = arg_is_nonnegative_float,
+            type = arg_is_positive_float,
             default = 0.1,
             help = ('Upper limit on uniform edge length prior.'))
     parser.add_argument('--vague-prior-lower',
             action = 'store',
-            type = arg_is_nonnegative_float,
-            default = 0.0,
+            type = arg_is_positive_float,
+            default = 0.0000001,
             help = ('Lower limit on vague uniform edge length prior.'))
     parser.add_argument('--vague-prior-upper',
             action = 'store',
-            type = arg_is_nonnegative_float,
+            type = arg_is_positive_float,
             default = 0.15,
             help = ('Upper limit on vague uniform edge length prior.'))
     parser.add_argument('--output-prefix',
@@ -719,7 +719,7 @@ def main_cli(argv = sys.argv):
         if i == 1:
             m.prior_lower = args.vague_prior_lower
             m.prior_upper = args.vague_prior_upper
-            m.output_prefix += "-vague-model"
+            args.output_prefix += "-vague-model"
 
         # ml_estimates = []
         # for i in range(args.mc_reps):

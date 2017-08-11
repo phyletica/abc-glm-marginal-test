@@ -35,7 +35,7 @@ def main():
     mcmc_sample_frequency = 10
     prior_lower = 1.0 / seq_length
     prior_upper = 0.1
-    vague_prior_lower = 0.0
+    vague_prior_lower = 1.0 / (10 * seq_length)
     vague_prior_upper = 0.15
 
     if not os.path.exists(project_util.QSUB_DIR):
