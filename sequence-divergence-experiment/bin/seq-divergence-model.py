@@ -493,34 +493,6 @@ class EdgeModel(object):
                 posterior_samples.sort()
         return posterior_samples
 
-def arg_is_positive_int(i):
-    try:
-        if int(i) < 1:
-            raise
-    except:
-        msg = '{0!r} is not a positive integer'.format(i)
-        raise argparse.ArgumentTypeError(msg)
-    return int(i)
-
-def arg_is_positive_float(i):
-    try:
-        if float(i) <= 0.0:
-            raise
-    except:
-        msg = '{0!r} is not a positive real number'.format(i)
-        raise argparse.ArgumentTypeError(msg)
-    return float(i)
-
-def arg_is_nonnegative_float(i):
-    try:
-        if float(i) < 0:
-            raise
-    except:
-        msg = '{0!r} is not a non-negative real number'.format(i)
-        raise argparse.ArgumentTypeError(msg)
-    return int(i)
-
-
 
 class ABCestimatorRegressWorker(object):
     def __init__(self,
@@ -618,6 +590,35 @@ class ABCestimatorRegressWorker(object):
             cfg.write('maxReadSims {0}\n'.format(
                     self.num_posterior_samples + 100))
             cfg.write('outputPrefix {0}\n'.format(self.output_prefix + "-"))
+
+
+def arg_is_positive_int(i):
+    try:
+        if int(i) < 1:
+            raise
+    except:
+        msg = '{0!r} is not a positive integer'.format(i)
+        raise argparse.ArgumentTypeError(msg)
+    return int(i)
+
+def arg_is_positive_float(i):
+    try:
+        if float(i) <= 0.0:
+            raise
+    except:
+        msg = '{0!r} is not a positive real number'.format(i)
+        raise argparse.ArgumentTypeError(msg)
+    return float(i)
+
+def arg_is_nonnegative_float(i):
+    try:
+        if float(i) < 0.0:
+            raise
+    except:
+        msg = '{0!r} is not a non-negative real number'.format(i)
+        raise argparse.ArgumentTypeError(msg)
+    return float(i)
+
 
 
 def main_cli(argv = sys.argv):
