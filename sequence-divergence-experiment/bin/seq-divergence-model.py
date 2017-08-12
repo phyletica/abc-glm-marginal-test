@@ -21,6 +21,8 @@ _LOG = logging.getLogger(os.path.basename(__file__))
 number_pattern_str = r"[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?"
 glm_density_pattern_str = r"marginal\s+density:\s+(?P<ml>" + number_pattern_str + ")"
 glm_density_pattern = re.compile(glm_density_pattern_str, re.VERBOSE)
+underflow_limit = math.log(sys.float_info.min) + 1e-8
+overflow_limit = math.log(sys.float_info.max) - 1e-8
 
 
 def count_differences(seq1, seq2):
@@ -77,7 +79,14 @@ class WindowOperator(object):
             return
         delta = self.calc_delta(log_alpha)
         delta += math.log(self.window_size)
-        self.set_window_size(math.exp(delta))
+        try:
+            self.set_window_size(math.exp(delta))
+        except OverflowError as e:
+            _LOG.warn(
+                    "Overflow at math.exp(delta = {0}). "
+                    "Skipping optimization".format(
+                        delta))
+            return
 
     def calc_delta(self, log_alpha):
         if (not self.auto_optimize) or (
@@ -85,7 +94,14 @@ class WindowOperator(object):
             return 0.0
         target = self.target_acceptance_probability
         count = self.number_of_proposals_for_tuning + 1.0
-        delta_p = ((1.0 / count) * (math.exp(min(log_alpha, 0.0)) - target))
+        try:
+            delta_p = ((1.0 / count) * (math.exp(min(log_alpha, 0.0)) - target))
+        except OverflowError as e:
+            _LOG.warn(
+                    "Overflow at math.exp(log_alpha = {0}). "
+                    "Skipping optimization".format(
+                        log_alpha))
+            return 0.0
         mx = sys.float_info.max
         if ((delta_p > -mx) and (delta_p < mx)):
             return delta_p
@@ -138,7 +154,14 @@ class ScaleOperator(object):
             return
         delta = self.calc_delta(log_alpha)
         delta += math.log(self.scale)
-        self.set_scale(math.exp(delta))
+        try:
+            self.set_scale(math.exp(delta))
+        except OverflowError as e:
+            _LOG.warn(
+                    "Overflow at math.exp(delta = {0}). "
+                    "Skipping optimization".format(
+                        delta))
+            return
 
     def calc_delta(self, log_alpha):
         if (not self.auto_optimize) or (
@@ -146,7 +169,14 @@ class ScaleOperator(object):
             return 0.0
         target = self.target_acceptance_probability
         count = self.number_of_proposals_for_tuning + 1.0
-        delta_p = ((1.0 / count) * (math.exp(min(log_alpha, 0.0)) - target))
+        try:
+            delta_p = ((1.0 / count) * (math.exp(min(log_alpha, 0.0)) - target))
+        except OverflowError as e:
+            _LOG.warn(
+                    "Overflow at math.exp(log_alpha = {0}). "
+                    "Skipping optimization".format(
+                        log_alpha))
+            return 0.0
         mx = sys.float_info.max
         if ((delta_p > -mx) and (delta_p < mx)):
             return delta_p
@@ -402,7 +432,13 @@ class EdgeModel(object):
         lnls = self.get_lnl_samples_from_prior(number_of_samples)
         assert len(lnls) == number_of_samples
         mean_lnl = sum(lnls) / len(lnls)
-        scaled_ml = sum(math.exp(l - mean_lnl) for l in lnls) / len(lnls)
+        try:
+            scaled_ml = sum(math.exp(l - mean_lnl) for l in lnls) / len(lnls)
+        except OverflowError as e:
+            _LOG.warn("Overflow at math.exp(l - mean_lnl)\n"
+                    "l = {l}\n"
+                    "mean_lnl = {mean_lnl}".format(l, mean_lnl))
+            raise
         ln_ml = math.log(scaled_ml) + mean_lnl
         return ln_ml
 
@@ -411,14 +447,12 @@ class EdgeModel(object):
         step_size = (self.prior_upper - self.prior_lower) / number_of_steps
         position = self.prior_lower
         ln_areas = []
-        total_ln_density = 0.0
         while position < self.prior_upper:
             if (position + step_size) > self.prior_upper:
                 step_size = self.prior_upper - position
             midpoint = position + (step_size / 2.0)
             ln_density = self.calc_ln_likelihood(
                     edge_length = midpoint) + ln_prior
-            total_ln_density += ln_density
             ln_slice_area = math.log(step_size) + ln_density 
             ln_areas.append(ln_slice_area)
             position += step_size
@@ -426,41 +460,77 @@ class EdgeModel(object):
                 (len(ln_areas) == number_of_steps + 1)), (
                 "unexpected number of steps {0}".format(len(ln_areas)))
         mean_ln_area = sum(ln_areas) / len(ln_areas)
-        mean_ln_density = total_ln_density / len(ln_areas)
         # Reduce underflow by shifting all log areas before exponentiating
-        scaled_areas = [math.exp(lna - mean_ln_area) for lna in ln_areas]
+        # ln_scale = max(underflow_limit - l for l in ln_areas)
+        ln_scale = -mean_ln_area 
+        scaled_ln_areas = [lna + ln_scale for lna in ln_areas]
+        overflow_scale_used = False
+        if max(scaled_ln_areas) >= overflow_limit:
+            _LOG.debug("Using overflow scaling for rectangular integration")
+            overflow_scale_used = True
+            ln_scale = min((overflow_limit - 10.0) - l for l in ln_areas)
+            scaled_ln_areas = [lna + ln_scale for lna in ln_areas]
+        try:
+            scaled_areas = [math.exp(lna) for lna in scaled_ln_areas]
+        except OverflowError as e:
+            _LOG.warn("Overflow at math.exp(lna)\n"
+                    "lna = {lna}\n"
+                    "ln_scale = {ln_scale}\n"
+                    "overflow scale? {overflow_scale_used}".format(
+                        lna = lna,
+                        ln_scale = ln_scale,
+                        overflow_scale_used = overflow_scale_used))
+            raise
         scaled_ml = sum(scaled_areas)
         # Shift the log marginal likelihood back
-        ln_ml = math.log(scaled_ml) + mean_ln_area
-        return ln_ml, mean_ln_density
+        ln_ml = math.log(scaled_ml) - ln_scale 
+        return ln_ml
 
-    def trapezoidal_integration_of_posterior(self, number_of_steps,
-            mean_ln_posterior_density):
+    def trapezoidal_integration_of_posterior(self, number_of_steps):
         ln_prior = self.get_edge_ln_prior_probability()
         step_size = (self.prior_upper - self.prior_lower) / number_of_steps
         position = self.prior_lower
-        scaled_ml = 0.0
         n = 0
+        left_ln_densities = []
+        right_ln_densities = []
+        step_sizes = []
         while position < self.prior_upper:
             if (position + step_size) > self.prior_upper:
                 step_size = self.prior_upper - position
             midpoint = position + (step_size / 2.0)
-            left_ln_density = self.calc_ln_likelihood(
-                    edge_length = position) + ln_prior
-            right_ln_density = self.calc_ln_likelihood(
-                    edge_length = position + step_size) + ln_prior
-            # Shift densities to reduce underflow
-            scaled_left_density = math.exp(left_ln_density - mean_ln_posterior_density)
-            scaled_right_density = math.exp(right_ln_density - mean_ln_posterior_density)
-            scaled_mean_density = (scaled_left_density + scaled_right_density) / 2.0
-            scaled_ml += scaled_mean_density * step_size
+            left_ln_densities.append(self.calc_ln_likelihood(
+                    edge_length = position) + ln_prior)
+            right_ln_densities.append(self.calc_ln_likelihood(
+                    edge_length = position + step_size) + ln_prior)
+            step_sizes.append(step_size)
             n += 1
             position += step_size
         assert ((n == number_of_steps) or
                 (n == number_of_steps + 1)), (
                 "unexpected number of steps {0}".format(n))
+        # Shift densities to reduce underflow
+        ln_scale = -sum(left_ln_densities + right_ln_densities) / (n * 2.0)
+        scaled_left_ln_densities = [l + ln_scale for l in left_ln_densities]
+        scaled_right_ln_densities = [l + ln_scale for l in right_ln_densities]
+        scaled_ln_densities = (scaled_left_ln_densities +
+                scaled_right_ln_densities)
+        overflow_scale_used = False
+        if max(scaled_ln_densities) >= overflow_limit:
+            _LOG.debug("Using overflow scaling for trapezoidal integration")
+            overflow_scale_used = True
+            ln_scale = min(
+                    (overflow_limit - 10.0) - l for l in scaled_ln_densities
+                    )
+            scaled_left_ln_densities = [l + ln_scale for l in left_ln_densities]
+            scaled_right_ln_densities = [l + ln_scale for l in right_ln_densities]
+        scaled_ml = 0.0
+        for i in range(len(step_sizes)):
+            scaled_mean_density = ((
+                    math.exp(scaled_left_ln_densities[i]) +
+                    math.exp(scaled_right_ln_densities[i])) / 2.0)
+            scaled_ml += scaled_mean_density * step_sizes[i]
         # Shift the log marginal likelihood back
-        ln_ml = math.log(scaled_ml) + mean_ln_posterior_density
+        ln_ml = math.log(scaled_ml) - ln_scale 
         return ln_ml
 
 
@@ -734,11 +804,10 @@ def main_cli(argv = sys.argv):
         #     for e in ml_estimates:
         #         out.write("{0}\n".format(e))
         for number_of_steps in [100, 1000, 10000]:
-            rect_ml, mean_density = m.rectangular_integration_of_posterior(
+            rect_ml = m.rectangular_integration_of_posterior(
                     number_of_steps = number_of_steps)
             trap_ml = m.trapezoidal_integration_of_posterior(
-                    number_of_steps = number_of_steps,
-                    mean_ln_posterior_density = mean_density)
+                    number_of_steps = number_of_steps)
             rect_path = args.output_prefix + "-rectangular-ml-estimate-{0}.txt".format(
                     number_of_steps)
             trap_path = args.output_prefix + "-trapezoidal-ml-estimate-{0}.txt".format(
