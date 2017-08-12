@@ -644,6 +644,11 @@ def main_cli(argv = sys.argv):
     parser.add_argument('--abc-prior-samples',
             action = 'store',
             type = arg_is_positive_int,
+            default = 50000,
+            help = ('Number of prior samples for ABC analyses.'))
+    parser.add_argument('--vague-abc-prior-samples',
+            action = 'store',
+            type = arg_is_positive_int,
             default = 100000,
             help = ('Number of prior samples for ABC analyses.'))
     parser.add_argument('--abc-posterior-samples',
@@ -713,13 +718,16 @@ def main_cli(argv = sys.argv):
 
     start_time = datetime.datetime.now()
 
+    abc_prior_samples = args.abc_prior_samples
     for i in range(2):
+        m.power = 1.0
         # First pass, inference under true model
         # Second pass, inference under model with vague prior
         if i == 1:
             m.prior_lower = args.vague_prior_lower
             m.prior_upper = args.vague_prior_upper
             args.output_prefix += "-vague-model"
+            abc_prior_samples = args.vague_abc_prior_samples
 
         # ml_estimates = []
         # for i in range(args.mc_reps):
@@ -749,7 +757,7 @@ def main_cli(argv = sys.argv):
                 out.write("{0}\n".format(trap_ml))
 
         abc_sample = m.abc_rejection(
-                number_of_prior_samples = args.abc_prior_samples,
+                number_of_prior_samples = abc_prior_samples,
                 number_of_posterior_samples = args.abc_posterior_samples)
         abc_path = args.output_prefix + "-abc-posterior-sample.txt"
         with open(abc_path, "w") as out:
