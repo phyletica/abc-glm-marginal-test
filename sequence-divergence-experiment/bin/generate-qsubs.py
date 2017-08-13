@@ -29,14 +29,15 @@ def main():
     walltime = "5:00:00"
 
     seq_length = 10000
-    abc_prior_samples = 100000
-    abc_posterior_samples = 5000
+    abc_prior_samples = 50000
+    vague_abc_prior_samples = 100000
+    abc_posterior_samples = 1000
     mcmc_generations = 10000
     mcmc_sample_frequency = 10
     prior_lower = 1.0 / seq_length
     prior_upper = 0.1
-    vague_prior_lower = 1.0 / (10 * seq_length)
-    vague_prior_upper = 0.15
+    vague_prior_lower = prior_lower 
+    vague_prior_upper = 0.2
 
     if not os.path.exists(project_util.QSUB_DIR):
         os.mkdir(project_util.QSUB_DIR)
@@ -66,6 +67,7 @@ def main():
                     walltime = walltime))
             cmd = ("python {relative_script_path} --seq-length {seq_length} "
                    "--abc-prior-samples {abc_prior_samples} "
+                   "--vague-abc-prior-samples {vague_abc_prior_samples} "
                    "--abc-posterior-samples {abc_posterior_samples} "
                    "--mcmc-generations {mcmc_generations} "
                    "--mcmc-sample-frequency {mcmc_sample_frequency} "
@@ -78,6 +80,7 @@ def main():
                             relative_script_path = relative_script_path,
                             seq_length = seq_length,
                             abc_prior_samples = abc_prior_samples,
+                            vague_abc_prior_samples = vague_abc_prior_samples,
                             abc_posterior_samples = abc_posterior_samples,
                             mcmc_generations = mcmc_generations,
                             mcmc_sample_frequency = mcmc_sample_frequency,

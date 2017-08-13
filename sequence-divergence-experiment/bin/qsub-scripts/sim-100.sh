@@ -11,4 +11,4 @@ then
     which python
 fi
 
-python ../seq-divergence-model.py --seq-length 10000 --abc-prior-samples 100000 --abc-posterior-samples 5000 --mcmc-generations 10000 --mcmc-sample-frequency 10 --prior-lower 0.0001 --prior-upper 0.1 --vague-prior-lower 1e-05 --vague-prior-upper 0.15 --output-prefix ../../output/sim-100 37994595 1>sim-100.sh.out 2>&1
+python ../seq-divergence-model.py --seq-length 10000 --abc-prior-samples 50000 --vague-abc-prior-samples 100000 --abc-posterior-samples 1000 --mcmc-generations 10000 --mcmc-sample-frequency 10 --prior-lower 0.0001 --prior-upper 0.1 --vague-prior-lower 0.0001 --vague-prior-upper 0.2 --output-prefix ../../output/sim-100 37994595 1>sim-100.sh.out 2>&1
