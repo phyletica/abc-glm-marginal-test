@@ -167,6 +167,66 @@ def plot_bayes_factor_results(quadrature_ln_bf, glm_ln_bf):
     gs.update(left = 0.13, right = 0.99, bottom = 0.12, top = 0.99)
 
     plot_path = os.path.join(project_util.RESULTS_DIR,
+            "ln-bayes-factors.pdf")
+    plt.savefig(plot_path)
+
+    quadrature_bf = [math.exp(lnbf) for lnbf in quadrature_ln_bf]
+    glm_bf = [math.exp(lnbf) for lnbf in glm_ln_bf]
+    mn = min(quadrature_bf + glm_bf)
+    mx = max(quadrature_bf + glm_bf)
+    axis_buffer = math.fabs(mx - mn) * 0.05
+    axis_min = mn - axis_buffer
+    axis_max = mx + axis_buffer
+
+    plt.close('all')
+    fig = plt.figure(figsize = (5.25, 4.0))
+    gs = gridspec.GridSpec(1, 1,
+            wspace = 0.0,
+            hspace = 0.0)
+    ax = plt.subplot(gs[0, 0])
+    line, = ax.plot(quadrature_bf, glm_bf)
+    plt.setp(line,
+            marker = 'o',
+            markerfacecolor = 'none',
+            markeredgecolor = '0.35',
+            markeredgewidth = 0.7,
+            markersize = 5.5,
+            linestyle = '',
+            zorder = 100,
+            rasterized = False)
+    ax.set_xlim(axis_min, axis_max)
+    ax.set_ylim(axis_min, axis_max)
+    identity_line, = ax.plot(
+            [0.0, 3.0],
+            [0.0, 3.0])
+    plt.setp(identity_line,
+            color = '0.7',
+            linestyle = '-',
+            linewidth = 1.0,
+            marker = '',
+            zorder = 0)
+    # Draw line associated with failing to penalize for essentially zero
+    # likelihood across the second (almost) half of vague prior which is
+    # roughly log(1/2); i.e., the upper half of the vague prior (0.1-0.2)
+    # should drag down marginal likelihood by about 1/2
+    # More precisely it should reduce ML by (0.2 - 0.0001) / (0.1 - 0.0001)
+    prior_lower = 1.0 / 10000.0
+    vague_penalty = (0.2 - prior_lower) / (0.1 - prior_lower)
+    penalty_line, = ax.plot(
+            [0.0,                 3.0],
+            [0.0, 3.0 / vague_penalty])
+    plt.setp(penalty_line,
+            color = '0.7',
+            linestyle = '--',
+            linewidth = 1.0,
+            marker = '',
+            zorder = 0)
+    xlabel_text = ax.set_xlabel("Quadrature Bayes factor", size = 14)
+    ylabel_text = ax.set_ylabel("ABC-GLM Bayes factor", size = 14)
+
+    gs.update(left = 0.13, right = 0.99, bottom = 0.12, top = 0.99)
+
+    plot_path = os.path.join(project_util.RESULTS_DIR,
             "bayes-factors.pdf")
     plt.savefig(plot_path)
 
