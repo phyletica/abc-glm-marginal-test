@@ -189,7 +189,7 @@ def plot_bayes_factor_results(quadrature_ln_bf, glm_ln_bf):
             marker = 'o',
             markerfacecolor = 'none',
             markeredgecolor = '0.35',
-            markeredgewidth = 0.7,
+            markeredgewidth = 0.8,
             markersize = 5.5,
             linestyle = '',
             zorder = 100,
@@ -202,7 +202,7 @@ def plot_bayes_factor_results(quadrature_ln_bf, glm_ln_bf):
     plt.setp(identity_line,
             color = '0.7',
             linestyle = '-',
-            linewidth = 1.0,
+            linewidth = 1.4,
             marker = '',
             zorder = 0)
     # Draw line associated with failing to penalize for essentially zero
@@ -218,9 +218,24 @@ def plot_bayes_factor_results(quadrature_ln_bf, glm_ln_bf):
     plt.setp(penalty_line,
             color = '0.7',
             linestyle = '--',
-            linewidth = 1.0,
+            linewidth = 1.4,
             marker = '',
             zorder = 0)
+    legend_elements = [
+            mpl.lines.Line2D([0], [0],
+                    color = '0.7',
+                    linestyle = '-',
+                    linewidth = 1.4,
+                    marker = '',
+                    label = "1-to-1 line"),
+            mpl.lines.Line2D([0], [0],
+                    color = '0.7',
+                    linestyle = '--',
+                    linewidth = 1.4,
+                    marker = '',
+                    label = "Predicted bias"),
+            ]
+    ax.legend(handles = legend_elements)
     xlabel_text = ax.set_xlabel("Quadrature Bayes factor", size = 14)
     ylabel_text = ax.set_ylabel("ABC-GLM Bayes factor", size = 14)
 
